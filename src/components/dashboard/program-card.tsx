@@ -1,3 +1,6 @@
+
+'use client';
+
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +22,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Program } from '@/lib/types';
 import { format, differenceInDays, formatDistanceToNow } from 'date-fns';
+import { useState, useEffect } from 'react';
 
 type ProgramCardProps = {
   program: Program;
@@ -27,6 +31,12 @@ type ProgramCardProps = {
 };
 
 export function ProgramCard({ program, onEdit, onDelete }: ProgramCardProps) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
     const achievementProgress = (program.pencapaian / program.target) * 100;
   
     const startDate = new Date(program.startDate);
@@ -39,6 +49,16 @@ export function ProgramCard({ program, onEdit, onDelete }: ProgramCardProps) {
     const clampedTimeGone = Math.max(0, Math.min(100, timeGoneProgress));
     
     const reward = program.pencapaian * program.rewardValue;
+
+    const formatCurrency = (value: number) => {
+        if (!isClient) return 'Rp...';
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+    };
+
+    const formatNumber = (value: number) => {
+        if (!isClient) return '...';
+        return value.toLocaleString('id-ID');
+    }
 
     return (
     <Card>
@@ -70,7 +90,7 @@ export function ProgramCard({ program, onEdit, onDelete }: ProgramCardProps) {
                 <span>{achievementProgress.toFixed(0)}%</span>
             </div>
             <Progress value={achievementProgress} aria-label={`${achievementProgress.toFixed(0)}% achievement`} />
-            <p className="text-xs text-muted-foreground mt-1 text-right">{program.pencapaian.toLocaleString()} / {program.target.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1 text-right">{formatNumber(program.pencapaian)} / {formatNumber(program.target)}</p>
         </div>
         <div>
             <div className="flex justify-between mb-1 text-xs text-muted-foreground">
@@ -79,14 +99,14 @@ export function ProgramCard({ program, onEdit, onDelete }: ProgramCardProps) {
             </div>
             <Progress value={clampedTimeGone} aria-label={`${clampedTimeGone.toFixed(0)}% time gone`} />
             <p className="text-xs text-muted-foreground mt-1 text-right">
-                Ends in {formatDistanceToNow(endDate, { addSuffix: true })}
+                {isClient ? `Ends in ${formatDistanceToNow(endDate, { addSuffix: true })}` : 'Calculating...'}
             </p>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
         <Badge variant="outline">{program.status}</Badge>
         <div className="text-sm font-semibold text-foreground">
-            Reward: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(reward)}
+            Reward: {formatCurrency(reward)}
         </div>
       </CardFooter>
     </Card>

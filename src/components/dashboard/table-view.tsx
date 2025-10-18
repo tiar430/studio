@@ -1,4 +1,8 @@
+
+'use client';
+
 import { MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,6 +39,17 @@ type TableViewProps = {
 };
 
 export function TableView({ programs, onEdit, onDelete }: TableViewProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const formatCurrency = (value: number) => {
+    if (!isClient) return 'Rp...';
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -90,11 +105,11 @@ export function TableView({ programs, onEdit, onDelete }: TableViewProps) {
                   <TableCell>
                     <div className="w-28">
                         <Progress value={clampedTimeGone} className="h-2" />
-                        <span className="text-xs text-muted-foreground">{formatDistanceToNow(endDate, { addSuffix: true })}</span>
+                        <span className="text-xs text-muted-foreground">{isClient ? formatDistanceToNow(endDate, { addSuffix: true }) : '...'}</span>
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(reward)}
+                    {formatCurrency(reward)}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
