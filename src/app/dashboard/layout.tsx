@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {
   Bell,
   Home,
+  PieChart,
   Settings,
   User,
   PanelLeft,
@@ -45,9 +46,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <SidebarContent>
                     <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton href="/dashboard" tooltip="Dashboard" isActive>
+                        <SidebarMenuButton href="/dashboard" tooltip="Dashboard">
                             <Home />
                             <span>Dashboard</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton href="/dashboard/pivot-table" tooltip="Pivot Table">
+                            <PieChart />
+                            <span>Pivot Table</span>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
