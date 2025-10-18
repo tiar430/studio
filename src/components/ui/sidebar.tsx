@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -562,26 +563,19 @@ const SidebarMenuButton = React.forwardRef<
     const { isMobile, state } = useSidebar()
 
     const buttonContent = (
-        <Comp
-          ref={ref as React.Ref<HTMLButtonElement>}
-          data-sidebar="menu-button"
-          data-size={size}
-          data-active={isActive}
-          className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-          {...props}
-        >
-          {children}
-        </Comp>
-      );
-  
-      const button = href ? (
-        <Link href={href} legacyBehavior passHref>
-            {buttonContent}
-        </Link>
-      ) : (
-        buttonContent
-      );
-  
+      <Comp
+        ref={ref as React.Ref<HTMLButtonElement>}
+        data-sidebar="menu-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        {...props}
+      >
+        {children}
+      </Comp>
+    )
+
+    const button = href ? <Link href={href}>{buttonContent}</Link> : buttonContent
 
     if (!tooltip) {
       return button
