@@ -94,7 +94,7 @@ export function TableView({ programs, onEdit, onDelete }: TableViewProps) {
                     </div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(reward)}
+                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(reward)}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

@@ -86,7 +86,7 @@ export function ProgramCard({ program, onEdit, onDelete }: ProgramCardProps) {
       <CardFooter className="flex justify-between items-center">
         <Badge variant="outline">{program.status}</Badge>
         <div className="text-sm font-semibold text-foreground">
-            Reward: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(reward)}
+            Reward: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(reward)}
         </div>
       </CardFooter>
     </Card>
