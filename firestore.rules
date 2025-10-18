@@ -1,0 +1,95 @@
+/**
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model.  Each user can only
+ * access their own data. Programs are stored as subcollections under each user's document.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, where {userId} MUST match the Firebase Auth UID.
+ * - /users/{userId}/programs/{programId}: Stores program data, accessible only to the owning user.
+ *
+ * Key Security Decisions:
+ * - Users can only create, read, update, and delete their own programs.
+ * - Listing programs is restricted to the owning user.
+ *
+ * Denormalization for Authorization:
+ * The 'userId' field within each Program document is used to enforce
+ * ownership, preventing the need for complex queries in the rules. The 'userId' is stored in the program document itself and the document path.
+ *
+ * Structural Segregation:
+ * Private user data (programs) is stored in user-specific subcollections, preventing accidental public access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Checks if the request is authenticated.
+     * @returns {boolean} True if the request is authenticated, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the requested user ID matches the authenticated user's ID.
+     * @param {string} userId The user ID to compare against the authenticated user's ID.
+     * @returns {boolean} True if the user IDs match, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the user is the owner and the resource exists.
+     * @param {string} userId The user ID of the owner.
+     * @returns {boolean} True if the user is the owner and the resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    match /users/{userId} {
+      /**
+       * @description Allows access to user documents based on ownership.
+       * @path /users/{userId}
+       * @allow (create) User with matching auth UID can create their user document.
+       * @deny (create) User trying to create a document with a different UID.
+       * @allow (get) User with matching auth UID can retrieve their user document.
+       * @deny (get) User trying to retrieve another user's document.
+       * @allow (update) User with matching auth UID can update their user document.
+       * @deny (update) User trying to update another user's document.
+       * @allow (delete) User with matching auth UID can delete their user document.
+       * @deny (delete) User trying to delete another user's document.
+       * @principle Enforces document ownership for all operations.
+       */
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow get: if isOwner(userId);
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+      allow list: if false;
+    }
+
+    match /users/{userId}/programs/{programId} {
+      /**
+       * @description Allows access to program documents based on user ownership.
+       * @path /users/{userId}/programs/{programId}
+       * @allow (create) User with matching auth UID can create a program document under their user document.
+       * @deny (create) User trying to create a program document under another user's document.
+       * @allow (get) User with matching auth UID can retrieve a program document under their user document.
+       * @deny (get) User trying to retrieve a program document under another user's document.
+       * @allow (update) User with matching auth UID can update a program document under their user document.
+       * @deny (update) User trying to update a program document under another user's document.
+       * @allow (delete) User with matching auth UID can delete a program document under their user document.
+       * @deny (delete) User trying to delete a program document under another user's document.
+       * @principle Enforces document ownership for all operations.
+       */
+      allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.id == programId;
+      allow get: if isOwner(userId);
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+      allow list: if isOwner(userId);
+    }
+  }
+}
