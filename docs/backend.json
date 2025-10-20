@@ -82,7 +82,40 @@
         "id",
         "email"
       ]
-    }
+    },
+    "Brand": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Brand",
+        "type": "object",
+        "description": "Represents a brand.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the Brand entity."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the brand."
+          },
+          "logoUrl": {
+              "type": "string",
+              "description": "URL for the brand's logo."
+          },
+          "description": {
+              "type": "string",
+              "description": "A short description of the brand."
+          },
+          "userId": {
+            "type": "string",
+            "description": "Reference to User. (Relationship: User 1:N Brand)"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "userId"
+        ]
+      }
   },
   "auth": {
     "providers": [
@@ -127,8 +160,28 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/brands/{brandId}",
+        "definition": {
+          "entityName": "Brand",
+          "schema": {
+            "$ref": "#/backend/entities/Brand"
+          },
+          "description": "Stores brand data for a specific user. 'userId' is the Firebase Authentication UID, and 'brandId' is a unique identifier for the brand.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, corresponding to the Firebase Auth UID."
+            },
+            {
+              "name": "brandId",
+              "description": "The unique identifier for the brand."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to manage programs associated with users. Programs are stored as subcollections under each user's document to ensure clear ownership and security. This structure facilitates easy retrieval of programs for a specific user and enables simple, robust security rules. It uses path-based ownership for programs, making security rules straightforward and efficient. This approach avoids complex queries or document reads within security rules, enhancing performance and security.\n\n**Authorization Independence (CRITICAL):** The program documents are stored as subcollections of user documents, using `/users/{userId}/programs/{programId}`. This structure inherently ties program ownership to the user ID, ensuring that only the specific user can access or modify the programs under their ID. Therefore, authorization checks are based solely on the path and `request.auth.uid`, without needing to `get()` other documents.\n\n**QAPs (Rules are not Filters):** To support secure `list` operations, the programs are structured as subcollections of users. Listing programs is always scoped to a specific user (e.g., `/users/{userId}/programs`). Since the programs are namespaced under each user, listing programs does not require filtering across all programs in the database. The security rules can enforce that only the authenticated user can list programs under their own user ID."
+    "reasoning": "The Firestore structure is designed to manage programs and brands associated with users. Programs and brands are stored as subcollections under each user's document to ensure clear ownership and security. This structure facilitates easy retrieval of data for a specific user and enables simple, robust security rules. It uses path-based ownership, making security rules straightforward and efficient. This approach avoids complex queries or document reads within security rules, enhancing performance and security.\n\n**Authorization Independence (CRITICAL):** The program and brand documents are stored as subcollections of user documents. This structure inherently ties data ownership to the user ID, ensuring that only the specific user can access or modify the documents under their ID. Therefore, authorization checks are based solely on the path and `request.auth.uid`, without needing to `get()` other documents.\n\n**QAPs (Rules are not Filters):** To support secure `list` operations, the data is structured as subcollections of users. Listing programs or brands is always scoped to a specific user (e.g., `/users/{userId}/programs`). Since the documents are namespaced under each user, listing them does not require filtering across the entire database. The security rules can enforce that only the authenticated user can list items under their own user ID."
   }
 }

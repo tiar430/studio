@@ -3,7 +3,10 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { initialPrograms } from '@/lib/data';
+import { useCollection, useAuth, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Program } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const COLORS = [
   'hsl(var(--chart-1))',
@@ -14,10 +17,22 @@ const COLORS = [
 ];
 
 export default function PivotTablePage() {
+  const { user } = useAuth();
+  const firestore = useFirestore();
+
+  const programsCollection = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(firestore, `users/${user.uid}/programs`);
+  }, [firestore, user]);
+
+  const { data: programs, isLoading } = useCollection<Omit<Program, 'id' | 'userId'>>(programsCollection);
+
   const brandData = useMemo(() => {
+    if (!programs) return [];
+    
     const dataByBrand: Record<string, { achievement: number; payment: number }> = {};
 
-    initialPrograms.forEach((program) => {
+    programs.forEach((program) => {
       if (!dataByBrand[program.brand]) {
         dataByBrand[program.brand] = { achievement: 0, payment: 0 };
       }
@@ -30,7 +45,7 @@ export default function PivotTablePage() {
       achievement: values.achievement,
       payment: values.payment,
     }));
-  }, []);
+  }, [programs]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -63,6 +78,31 @@ export default function PivotTablePage() {
   
     return null;
   };
+
+  if (isLoading) {
+    return (
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                </CardHeader>
+                <CardContent className="flex justify-center items-center h-[300px]">
+                    <Skeleton className="h-[200px] w-[200px] rounded-full" />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                </CardHeader>
+                <CardContent className="flex justify-center items-center h-[300px]">
+                    <Skeleton className="h-[200px] w-[200px] rounded-full" />
+                </CardContent>
+            </Card>
+        </div>
+    )
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2">

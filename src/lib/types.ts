@@ -11,4 +11,13 @@ export type Program = {
   startDate: string;
   endDate: string;
   rewardValue: number;
+  userId: string;
 };
+
+export type Brand = {
+    id: string;
+    name: string;
+    description?: string;
+    logoUrl?: string;
+    userId: string;
+}
